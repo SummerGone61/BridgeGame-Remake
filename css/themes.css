@@ -1,0 +1,292 @@
+/* ============================================================
+   themes.css —— 三款主题的 DOM 皮肤（仅装饰，不含任何游戏规则）
+   结构分工：
+     style.css  只写布局与交互骨架，颜色/圆角/字体全部走 CSS 变量；
+     本文件     只写"用变量表达不了"的主题专属装饰
+                （发光、纸纹、黏土厚边、印章、角标、动画）。
+   所有选择器都以 [data-theme="..."] 开头，新增主题时在此追加一段即可。
+   ============================================================ */
+
+/* ============================================================
+   主题一：霓虹深海（neon）—— 暗色 · 发光 · 数字舱
+   ============================================================ */
+
+/* 全屏扫描线 + 暗角（在画布之上、HUD 之下，不拦截点击） */
+[data-theme="neon"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px),
+    radial-gradient(120% 90% at 50% 40%, transparent 42%, rgba(0, 0, 0, 0.42) 100%);
+  mix-blend-mode: multiply;
+}
+
+/* HUD 顶部数据轨道 */
+[data-theme="neon"] #hud::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -6px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--c-accent) 18%, var(--c-accent-alt) 82%, transparent);
+  opacity: 0.45;
+}
+
+/* 信息框：左侧霓虹指示条 + 四角切角 */
+[data-theme="neon"] .stat {
+  position: relative;
+  background-image: linear-gradient(180deg, rgba(53, 245, 255, 0.10), transparent 60%);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+[data-theme="neon"] .stat::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--c-accent);
+  box-shadow: 0 0 10px var(--c-glow);
+}
+
+/* 按钮：等宽大写 + 悬停扫光 */
+[data-theme="neon"] button {
+  text-transform: uppercase;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="neon"] button::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 40%;
+  left: -60%;
+  background: linear-gradient(90deg, transparent, rgba(53, 245, 255, 0.35), transparent);
+  transition: left 320ms ease;
+}
+[data-theme="neon"] button:hover::after { left: 120%; }
+
+/* 面板：角标支架（贴着内边缘画，不用负偏移 —— 负偏移会在 overflow 容器里
+   产生 2px 的可滚动溢出，进而让开始/暂停/设置/结算面板冒出滚动条） */
+[data-theme="neon"] .panel { position: relative; }
+[data-theme="neon"] .panel::before,
+[data-theme="neon"] .panel::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--c-accent);
+  opacity: 0.85;
+  pointer-events: none;
+}
+[data-theme="neon"] .panel::before { left: 0; top: 0; border-right: 0; border-bottom: 0; }
+[data-theme="neon"] .panel::after { right: 0; bottom: 0; border-left: 0; border-top: 0; }
+
+/* 标题：霓虹辉光 + 缓慢呼吸 */
+[data-theme="neon"] .game-title {
+  text-shadow:
+    0 0 10px rgba(53, 245, 255, 0.85),
+    0 0 26px rgba(53, 245, 255, 0.45),
+    0 0 48px rgba(255, 79, 216, 0.35);
+  animation: neon-breathe 4.6s ease-in-out infinite;
+}
+@keyframes neon-breathe {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.86; }
+}
+
+/* 生命图标：外发光 + 心跳 */
+[data-theme="neon"] .life-icon {
+  filter: drop-shadow(0 0 5px var(--c-glow));
+  animation: neon-heart 2.6s ease-in-out infinite;
+}
+@keyframes neon-heart {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.08); }
+}
+
+/* 提示条：左侧青色数据条 */
+[data-theme="neon"] #hint { border-left: 2px solid var(--c-accent); }
+
+/* ============================================================
+   主题二：水墨和纸（ink）—— 浅色 · 宣纸 · 朱砂
+   ============================================================ */
+
+/* 纸面纤维（在画布之上叠一层极淡纸纹与四周晕染） */
+[data-theme="ink"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(92deg, rgba(120, 104, 78, 0.05) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(2deg, rgba(120, 104, 78, 0.035) 0 1px, transparent 1px 7px),
+    radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(112, 96, 70, 0.14) 100%);
+}
+
+/* 信息框：细墨框 + 左上角朱砂小点 */
+[data-theme="ink"] .stat {
+  position: relative;
+  background-image: linear-gradient(180deg, rgba(255, 253, 247, 0.9), rgba(246, 240, 226, 0.75));
+  box-shadow: 0 2px 8px rgba(43, 45, 51, 0.10);
+}
+[data-theme="ink"] .stat::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  width: 4px;
+  height: 4px;
+  background: var(--c-accent);
+}
+
+/* 面板：墨框 + 右上朱砂印 */
+[data-theme="ink"] .panel {
+  position: relative;
+  border-color: rgba(43, 45, 51, 0.5);
+  background-image: linear-gradient(180deg, rgba(253, 250, 243, 0.96), rgba(243, 236, 222, 0.94));
+}
+[data-theme="ink"] .panel::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(43, 45, 51, 0.18);
+  pointer-events: none;
+}
+[data-theme="ink"] .panel::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 18px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--c-accent);
+  box-shadow: inset 0 0 0 2px rgba(253, 247, 238, 0.9);
+  opacity: 0.92;
+  pointer-events: none;
+}
+
+/* 标题：楷体 + 朱砂笔锋下划线 */
+[data-theme="ink"] .game-title {
+  position: relative;
+  letter-spacing: 0.28em;
+  text-shadow: 0 2px 0 rgba(43, 45, 51, 0.10);
+  padding-bottom: 10px;
+}
+[data-theme="ink"] .game-title::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 76%;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--c-accent) 22%, var(--c-accent) 78%, transparent);
+  opacity: 0.75;
+}
+
+/* 按钮：楷体宽阔字距 + 墨边 */
+[data-theme="ink"] button {
+  letter-spacing: 0.22em;
+  box-shadow: 0 2px 0 rgba(43, 45, 51, 0.16);
+}
+[data-theme="ink"] button:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+
+/* 生命图标：朱砂心，安静不发光 */
+[data-theme="ink"] .life-icon { filter: drop-shadow(0 1px 0 rgba(43, 45, 51, 0.18)); }
+
+/* 提示条：左侧朱砂短竖 */
+[data-theme="ink"] #hint { border-left: 2px solid var(--c-accent); }
+
+/* ============================================================
+   主题三：糖果黏土（clay）—— 浅色 · 粉彩 · 黏土拟物
+   ============================================================ */
+
+/* 底色：柔和粉紫云斑 */
+[data-theme="clay"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 30% at 12% 16%, rgba(255, 199, 95, 0.18), transparent 70%),
+    radial-gradient(42% 34% at 88% 12%, rgba(126, 224, 166, 0.20), transparent 70%),
+    radial-gradient(46% 38% at 78% 88%, rgba(184, 146, 255, 0.18), transparent 70%),
+    radial-gradient(40% 32% at 16% 86%, rgba(110, 198, 255, 0.18), transparent 70%);
+}
+
+/* 信息框：厚边黏土块 */
+[data-theme="clay"] .stat {
+  border-radius: 15px;
+  background-image: linear-gradient(180deg, #ffffff, #fff1f8);
+  box-shadow: 0 5px 0 rgba(228, 196, 222, 0.75), 0 8px 18px rgba(180, 140, 200, 0.16);
+}
+[data-theme="clay"] .label { color: #a4809e; }
+[data-theme="clay"] .value { color: #3f2f4d; }
+
+/* 面板：厚底软糖板 */
+[data-theme="clay"] .panel {
+  border-radius: 22px;
+  border-color: rgba(222, 186, 224, 0.95);
+  background-image: linear-gradient(180deg, #ffffff, #fff6fb 60%, #f7f2ff);
+  box-shadow: 0 10px 0 rgba(224, 186, 220, 0.55), 0 22px 44px rgba(180, 140, 200, 0.24);
+}
+[data-theme="clay"] .panel h2 { color: #4a3b57; }
+
+/* 标题：糖果渐变字 + 厚底投影 */
+[data-theme="clay"] .game-title {
+  background: linear-gradient(180deg, #ff9db8 0%, #ff8fab 45%, #b892ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 5px 0 rgba(226, 160, 200, 0.55));
+  letter-spacing: 0.1em;
+}
+
+/* 按钮：药丸黏土（按下时"压扁"） */
+[data-theme="clay"] button {
+  border-radius: 999px;
+  font-weight: 700;
+  box-shadow: 0 5px 0 rgba(206, 160, 190, 0.6);
+}
+[data-theme="clay"] button:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 rgba(206, 160, 190, 0.6);
+}
+[data-theme="clay"] .panel button {
+  box-shadow: 0 5px 0 rgba(200, 120, 155, 0.55), 0 8px 16px rgba(255, 143, 171, 0.28);
+}
+[data-theme="clay"] .panel button:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 rgba(200, 120, 155, 0.55);
+}
+
+/* 生命图标：轻轻上下弹动 */
+[data-theme="clay"] .life-icon {
+  filter: drop-shadow(0 2px 0 rgba(226, 160, 200, 0.5));
+  animation: clay-bob 2.4s ease-in-out infinite;
+}
+[data-theme="clay"] .life-icon:nth-child(2) { animation-delay: 0.12s; }
+[data-theme="clay"] .life-icon:nth-child(3) { animation-delay: 0.24s; }
+[data-theme="clay"] .life-icon:nth-child(4) { animation-delay: 0.36s; }
+[data-theme="clay"] .life-icon:nth-child(5) { animation-delay: 0.48s; }
+@keyframes clay-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+
+/* 提示条与主题标签：圆润药丸 */
+[data-theme="clay"] #hint,
+[data-theme="clay"] #themeTag { border-radius: 14px; }
+
+/* 主题卡片：跟随主题圆角，选中时给一点"黏土厚度" */
+[data-theme="clay"] .theme-card { border-radius: 16px; }
+[data-theme="clay"] .theme-card .tc-swatch { border-radius: 12px; }
+[data-theme="ink"] .theme-card .tc-swatch { border-radius: 2px; }

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="neon" data-mode="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>传送带桥 · 无尽路线规划</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/themes.css">
+</head>
+<body>
+  <!-- 换肤过渡层：主题切换时的一次"洗版"，纯视觉 -->
+  <div id="themeWash" aria-hidden="true"></div>
+
+  <div id="hud">
+    <div class="hud-left">
+      <div class="hud-row" id="hudTopRow">
+        <div class="stat"><span class="label">SCORE</span><span id="score" class="value">0</span></div>
+        <div class="stat"><span class="label">BEST</span><span id="best" class="value">0</span></div>
+        <div class="stat"><span class="label">DIFF</span><span id="diff" class="value">Lv.1</span></div>
+      </div>
+      <div class="hud-row lives-row">
+        <div class="stat lives-stat" id="livesStat"><span class="label">LIVES</span><span id="lives" class="value"></span></div>
+      </div>
+    </div>
+    <div class="hud-right">
+      <button id="settingsBtn" type="button">设置</button>
+      <button id="pauseBtn" type="button">暂停</button>
+    </div>
+  </div>
+
+  <canvas id="game-canvas"></canvas>
+
+  <div id="themeTag" aria-live="polite"><span class="tt-dot" aria-hidden="true"></span><span id="themeTagText">主题</span></div>
+  <div id="hint">点击两通路间建桥 · 点击桥拆桥 · P 暂停 / R 重开</div>
+
+  <!-- 开始界面（默认显示，游戏未开始时覆盖全屏） -->
+  <div id="startOverlay" class="overlay">
+    <div class="panel start-panel">
+      <h1 class="game-title">桥</h1>
+      <p class="game-sub">传送带桥 · 无尽路线规划</p>
+      <button id="startBtn" type="button">开始</button>
+      <button id="startSettingsBtn" type="button" class="btn-secondary">设置</button>
+    </div>
+  </div>
+
+  <!-- 设置面板（开始界面 / 游戏中 / 结算界面 复用同一组件） -->
+  <div id="settingsOverlay" class="overlay hidden">
+    <div class="panel settings-panel">
+      <h2>设置</h2>
+      <div class="settings-body">
+        <div class="tune-title">主题 · 外观</div>
+        <div id="themePicker" class="theme-picker" role="radiogroup" aria-label="主题选择"></div>
+        <p id="themeNote" class="picker-note"></p>
+
+        <div class="tune-title">速度调节（即时生效）</div>
+        <label class="tune-row">下落
+          <input type="range" id="speedSlider" min="0.25" max="2" step="0.05" value="1">
+          <span id="speedVal" class="tune-val">×1.00</span>
+        </label>
+        <label class="tune-row">生成
+          <input type="range" id="spawnSlider" min="0.5" max="2" step="0.05" value="1">
+          <span id="spawnVal" class="tune-val">×1.00</span>
+        </label>
+        <!-- 未来设置项（如音效开关）在此追加 -->
+      </div>
+      <button id="settingsCloseBtn" type="button">关闭</button>
+    </div>
+  </div>
+
+  <div id="pauseOverlay" class="overlay hidden">
+    <div class="panel">
+      <h2>已暂停</h2>
+      <p>按 P 或点击「继续」恢复游戏</p>
+      <button id="resumeBtn" type="button">继续</button>
+    </div>
+  </div>
+
+  <div id="gameOverOverlay" class="overlay hidden">
+    <div class="panel">
+      <h2>游戏结束</h2>
+      <p>本局得分：<span id="finalScore">0</span></p>
+      <p>历史最佳：<span id="finalBest">0</span></p>
+      <button id="restartBtn" type="button">再来一局 (R)</button>
+      <button id="gameoverSettingsBtn" type="button" class="btn-secondary">设置</button>
+    </div>
+  </div>
+
+  <!-- 核心逻辑层（规则，不含任何外观） -->
+  <script src="js/config.js"></script>
+  <script src="js/logic.js"></script>
+  <!-- 外观层：通用工具箱 → 主题运行时 → 主题定义 → 渲染管线 -->
+  <script src="js/gfx.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/themes/neon.js"></script>
+  <script src="js/themes/ink.js"></script>
+  <script src="js/themes/clay.js"></script>
+  <script src="js/render.js"></script>
+  <!-- 交互 / 装配层 -->
+  <script src="js/input.js"></script>
+  <script src="js/theme-ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

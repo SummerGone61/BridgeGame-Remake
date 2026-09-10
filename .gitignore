@@ -1,0 +1,43 @@
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 编辑器 / IDE
+.idea/
+.vscode/
+*.iml
+*.user
+*.suo
+
+# 日志
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.bak
+~$*
+
+# 依赖（如果以后引入 npm）
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# 构建产物
+dist/
+build/
+out/
+
+# 环境变量和密钥
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# 截图 / 测试输出（按需取消注释）
+# tools/shots/
+# tools/output/
+# *.png
