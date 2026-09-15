@@ -1,4 +1,4 @@
-﻿"use strict";
+"use strict";
 
 /**
  * ============================================================
@@ -546,6 +546,93 @@ function main() {
 
   // ---- 让逻辑层真实生成、投递一些物品（跑满 20 秒） ----
   runFrames(1200, 16.7);
+
+  // ---- 端到端回归：Game Over →「再来一局」→ 五个生命图标必须全部回来 ----
+  // 历史 bug：mountLives 的 set() 只在"生命变少"时改 DOM（隐藏被消耗的图标），
+  // 重开一局（0 → 5）时只更新内部计数，于是重开后 LIVES 一行永久空白
+  // （只有换主题触发 paint() 才会突然冒出来）。这里用真实主循环玩到 Game Over，
+  // 再点真实的「再来一局」按钮来验证修复。
+  const restart = [];
+  (function restartLifecycle() {
+    const livesEl = dom.registry["lives"];
+    const visibleHearts = function () {
+      let c = 0;
+      livesEl.children.forEach(function (el) {
+        if (el.style.display !== "none") c++;
+      });
+      return c;
+    };
+    const step = function (n) {
+      for (let i = 0; i < n; i++) {
+        const cbs = dom.rafs.splice(0, dom.rafs.length);
+        if (!cbs.length) return false;
+        const t = dom.advance(16.7);
+        cbs.forEach(function (cb) {
+          try { cb(t); } catch (e) { fail("重开流程帧回调抛错：" + (e && e.message)); }
+        });
+      }
+      return true;
+    };
+
+    // 加速时间：只改生成间隔与下落速度这两个平衡参数（不碰任何规则常量），
+    // 让真实主循环在几十~几百帧内掉光 5 条命。
+    const saved = {
+      spawnBaseInterval: Config.spawnBaseInterval,
+      spawnMinInterval: Config.spawnMinInterval,
+      itemSpeed: Config.itemSpeed,
+    };
+    Config.spawnBaseInterval = 0.05;
+    Config.spawnMinInterval = 0.05;
+    Config.itemSpeed = 900;
+
+    // 先用真实的「再来一局」按钮开一局（等价于开始界面点「开始」）
+    dom.registry["restartBtn"].dispatch("click");
+    const heartsAtStart = visibleHearts();
+
+    // 跑到 Game Over：结算面板去掉 hidden 即表示游戏结束
+    const overEl = dom.registry["gameOverOverlay"];
+    let frames = 0;
+    while (overEl.classList.contains("hidden") && frames < 6000) {
+      if (!step(1)) break;
+      frames++;
+    }
+    const reachedOver = !overEl.classList.contains("hidden");
+    const atOver = visibleHearts();
+
+    // 点「再来一局 (R)」→ 五颗心必须全部回来
+    dom.registry["restartBtn"].dispatch("click");
+    const afterRestart = visibleHearts();
+
+    // 再掉一条命：应当只隐藏最右边 1 颗，其余 4 颗仍在（且不再"凭空消失"）
+    let hitFrames = 0;
+    while (visibleHearts() === 5 && hitFrames < 900) {
+      if (!step(1)) break;
+      hitFrames++;
+    }
+    const afterOneHit = visibleHearts();
+
+    if (heartsAtStart !== 5) fail("重开一局后生命图标不是 5 颗（实际 " + heartsAtStart + " 颗）");
+    if (!reachedOver) fail("加速跑 " + frames + " 帧仍未进入 Game Over，无法验证重开流程");
+    if (reachedOver && atOver !== 0) fail("Game Over 时生命图标应为 0 颗，实际 " + atOver + " 颗");
+    if (afterRestart !== 5) {
+      fail("重开一局后生命图标未恢复：期望 5 颗，实际 " + afterRestart +
+           " 颗（set() 没有把显隐同步回 DOM）");
+    }
+    if (afterOneHit !== 4) {
+      fail("重开后掉一条命应剩 4 颗心，实际 " + afterOneHit + " 颗");
+    }
+    restart.push({
+      framesToOver: frames,
+      atStart: heartsAtStart,
+      atOver: atOver,
+      afterRestart: afterRestart,
+      afterOneHit: afterOneHit,
+    });
+
+    Config.spawnBaseInterval = saved.spawnBaseInterval;
+    Config.spawnMinInterval = saved.spawnMinInterval;
+    Config.itemSpeed = saved.itemSpeed;
+  })();
 
   // ---- 逐主题换肤并重跑 ----
   const perTheme = [];
@@ -1142,6 +1229,13 @@ function main() {
       String(t.colors).padStart(4) + " 种颜色，" + t.callKinds + " 类绘制指令"
     );
   });
+  console.log("\n-- 重开流程（Game Over → 再来一局）--");
+  restart.forEach(function (r) {
+    console.log("  跑 " + r.framesToOver + " 帧进入 Game Over；生命图标：" +
+      "开局 " + r.atStart + " → Game Over " + r.atOver +
+      " → 重开后 " + r.afterRestart + " → 再掉一条命 " + r.afterOneHit);
+  });
+
   console.log("\n-- 配色对比度（WCAG 比值，越大越清晰）--");
   contrastReport.forEach(function (c) {
     console.log("  " + c.label +

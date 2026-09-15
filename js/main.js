@@ -194,6 +194,8 @@ Main.boot = function () {
     Render.clearEffects();
     gameStarted = true;
     state.paused = false;
+    // 生命图标：set() 是"计数 + DOM 显隐"的唯一权威入口，
+    // 因此重开一局（0/残血 → 5）会在这里把五颗心全部显示回来。
     lives.set(state.lives);
     hud.gameOverOverlay.classList.add("hidden");
     hud.pauseOverlay.classList.add("hidden");

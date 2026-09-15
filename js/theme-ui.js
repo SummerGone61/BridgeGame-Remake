@@ -203,6 +203,12 @@ ThemeUI.refresh = function () {
  * 在容器内生成 count 个生命图标，并返回一个控制器：
  *   set(n) → 显示前 n 个；若本次有图标被消耗，返回该图标消耗前的 DOMRect（供碎裂动画使用）。
  * 主题切换时自动替换图标外观，且保持当前存活数量。
+ *
+ * 不变式（曾因违反它出过 bug）：**显示状态永远由 shown 唯一决定，且每次变化都写回 DOM**。
+ * 早先的实现只在"数量变少"时改 DOM（隐藏被消耗的图标），数量变多时只改内部计数 ——
+ * 于是重开一局（0 → 5）后内部是 5、DOM 里却还是五个 display:none，
+ * 而装配层的 `state.lives !== getShown()` 判断又认为"没变化"，再也不会去修，
+ * 结果 LIVES 一行彻底空掉（只有换主题触发 paint() 才会突然冒出来）。
  */
 ThemeUI.mountLives = function (container, count) {
   const n = count || 5;
@@ -217,13 +223,19 @@ ThemeUI.mountLives = function (container, count) {
 
   let shown = n;
 
+  /** 只同步显隐：不动 innerHTML，免得每次生命变化都重启动画（霓虹心跳/黏土弹动） */
+  function syncVisibility() {
+    for (let i = 0; i < n; i++) {
+      icons[i].style.display = i < shown ? "inline-block" : "none";
+    }
+  }
+
+  /** 换肤：整体重绘（替换图标外观 + 同步显隐） */
   function paint() {
     const def = Theme.get();
     const svg = (def && def.livesIcon) || ThemeUI.FALLBACK_LIFE;
-    for (let i = 0; i < n; i++) {
-      icons[i].innerHTML = svg;
-      icons[i].style.display = i < shown ? "inline-block" : "none";
-    }
+    for (let i = 0; i < n; i++) icons[i].innerHTML = svg;
+    syncVisibility();
   }
   paint();
 
@@ -236,12 +248,15 @@ ThemeUI.mountLives = function (container, count) {
       const want = Math.max(0, Math.min(n, v | 0));
       let lostRect = null;
       if (want < shown) {
+        // 生命减少：从右往左消耗，并记录"被消耗且当时可见"的那个图标位置用于碎裂动画
         for (let i = shown - 1; i >= want; i--) {
           if (icons[i].style.display !== "none") lostRect = icons[i].getBoundingClientRect();
           icons[i].style.display = "none";
         }
       }
       shown = want;
+      // 无论增减都同步一次：重开一局（0 → 5）时靠这一步把爱心显示回来
+      syncVisibility();
       return lostRect;
     },
     /** 当前显示中的图标数量（装配层据此判断"生命是否变化"） */
